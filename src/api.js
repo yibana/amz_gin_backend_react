@@ -66,6 +66,9 @@ const QueryPathData_MongoAggregate = [
 ]
 
 
+export const RedisSet = (key, val) => postJson('/redis/set', {key: key, value: val});
+export const RedisGet = (key) => get('/redis/get?key=' + encodeURIComponent(key), "");
+
 export const QueryPathAggregate = () => MongoAggregate(QueryPathData_MongoAggregate);
 export const MongoAggregate = (data) => postJson('/MongoAggregate', data);
 

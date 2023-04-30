@@ -48,13 +48,13 @@ const _nav = [
   },
   {
     component: CNavGroup,
-    name: '任务',
+    name: '商品详情任务',
     to: '/task',
     icon: <CIcon icon={cilNotes} customClassName="nav-icon" />,
     items: [
       {
         component: CNavItem,
-        name: '分类选择',
+        name: '1.分类选择',
         to: '/task/category',
       },
     ]
