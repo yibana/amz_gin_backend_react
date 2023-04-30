@@ -74,3 +74,9 @@ export const MongoAggregate = (data) => postJson('/MongoAggregate', data);
 
 export const Categorys2TreeNode = (data) => get('/Categorys2TreeNode', data);
 
+
+export const ProductDetailStatus = () => postJson('/task/ProductDetail', {cmd: "status"});
+export const ProductDetailStop = () => postJson('/task/ProductDetail', {cmd: "stop"});
+export const ProductDetailStart = (proxys) => postJson('/task/ProductDetail', {cmd: "start", proxys: proxys,random_delay:5000});
+
+

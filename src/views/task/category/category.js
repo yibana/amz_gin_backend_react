@@ -1,5 +1,4 @@
-import React, {useEffect, useState} from "react";
-import {Categorys2TreeNode} from "../../../api";
+import React from "react";
 import CategoryTree from "../../../components/CategoryTree";
 
 const Category = () => {

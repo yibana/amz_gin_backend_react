@@ -57,6 +57,11 @@ const _nav = [
         name: '1.分类选择',
         to: '/task/category',
       },
+      {
+        component: CNavItem,
+        name: '2.执行任务',
+        to: '/task/ProductDetail',
+      },
     ]
   },
   {
