@@ -7,7 +7,7 @@ import {cloneDeep, debounce} from "lodash";
 import {build} from "src/components/categoryNode.js"
 import {CButton, CContainer, CFormInput, CFormSelect} from "@coreui/react";
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import {RedisGet, RedisSet} from "../api";
+import {RedisGet, RedisSet, ResetDonePaths} from "../api";
 
 function mergeAndFilterDuplicates(arr1, arr2) {
   const mergedArr = [...arr1, ...arr2];
@@ -40,7 +40,14 @@ class CategoryTree extends React.Component {
       }
     });
   }
-  RedisSetSync = () => RedisSet("CategoryTree:checked", JSON.stringify(this.state.checked));
+  RedisSetSync = () => {
+    RedisSet("CategoryTree:checked", JSON.stringify(this.state.checked)).then((res) => {
+      if (res.status==="ok") {
+        ResetDonePaths();
+      }
+    })
+
+  }
   onCheck = checked => {
     if(this.state.keyword.length > 0) {
       checked = mergeAndFilterDuplicates(checked, this.state.checked)
@@ -48,6 +55,7 @@ class CategoryTree extends React.Component {
     this.setState({ checked }, () => {
       //console.log(this.state.checked);
       this.RedisSetSync();
+
     });
   };
 

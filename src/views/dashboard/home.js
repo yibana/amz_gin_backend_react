@@ -247,7 +247,6 @@ function Home() {
                     <CTableHeaderCell scope="col" style={{width: "50px"}}>#</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className="text-center"
                                       style={{width: "610px"}}>简要</CTableHeaderCell>
-                    <CTableHeaderCell scope="col" className="text-center">Asin</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className="text-center">品牌</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className="text-center">价格</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className="text-center"
@@ -265,7 +264,7 @@ function Home() {
                             <CTableDataCell scope="row">
                               <CContainer>
                                 <CRow className="align-items-center">
-                                  <CCol xs={2}>
+                                  <CCol xs={3}>
                                     {
                                       item.images && item.images.length > 0 ? (
                                         <Avatar className="p-overlay-badge" image={item.images[0]} size="xlarge">
@@ -277,8 +276,11 @@ function Home() {
                                         </Avatar>
                                       )
                                     }
+                                    {
+                                      <span style={{"font-size": "12px"}}>{item.asin}</span>
+                                    }
                                   </CCol>
-                                  <CCol xs={10}>
+                                  <CCol xs={9}>
                                     <CCol>
                                       <CTooltip content={item.title}>
                                         <div className="text-truncate" style={{width: "450px"}}>
@@ -332,7 +334,6 @@ function Home() {
 
 
                             </CTableDataCell>
-                            <CTableDataCell scope="row" className="text-center">{item.asin}</CTableDataCell>
                             <CTableDataCell scope="row" className="text-center">{item.brand}</CTableDataCell>
                             <CTableDataCell scope="row" className="text-center">{item.price}</CTableDataCell>
                             <CTableDataCell scope="row">
