@@ -52,12 +52,13 @@ const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 
 // task
 const Task_Category = React.lazy(() => import('./views/task/category/category'))
-
+const Home = React.lazy(() => import('./views/dashboard/home'))
 const ProductDetail = React.lazy(() => import('./views/task/ProductDetail/ProductDetail'))
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/category', name: 'Dashboard', element: Dashboard },
   { path: '/task/category', name: 'category', element: Task_Category },
+  { path: '/home', name: 'home', element: Home },
   { path: '/task/ProductDetail', name: 'category', element: ProductDetail },
   { path: '/theme', name: 'Theme', element: Colors, exact: true },
   { path: '/theme/colors', name: 'Colors', element: Colors },

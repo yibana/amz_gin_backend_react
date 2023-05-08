@@ -168,8 +168,6 @@ const ProductDetail = () => {
                       </div>
                     </CCol>
                 }
-
-
               </CRow>
 
             </CCardHeader>

@@ -3,3 +3,14 @@
     cursor: pointer;
     transform: scale(1.2);
 }
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.table-text-limit {
+  white-space: nowrap;  /* 让文本在一行中显示 */
+  overflow: hidden;     /* 隐藏超出容器的文本 */
+  text-overflow: ellipsis; /* 用省略号表示被截断的文本 */
+  width: 60px;
+}

@@ -79,4 +79,4 @@ export const ProductDetailStatus = () => postJson('/task/ProductDetail', {cmd: "
 export const ProductDetailStop = () => postJson('/task/ProductDetail', {cmd: "stop"});
 export const ProductDetailStart = (proxys) => postJson('/task/ProductDetail', {cmd: "start", proxys: proxys,random_delay:5000});
 
-
+export const ConvertToTreeSelect = () => get('/ConvertToTreeSelect', "");
