@@ -85,6 +85,17 @@ function base64ToBlob(base64Data, contentType) {
   const blob = new Blob(byteArrays, {type: contentType});
   return blob;
 }
+function formatTimestamp(timestamp) {
+  var date = new Date(timestamp * 1000);
+  var year = date.getFullYear();
+  var month = ("0" + (date.getMonth() + 1)).slice(-2);
+  var day = ("0" + date.getDate()).slice(-2);
+  var hours = ("0" + date.getHours()).slice(-2);
+  var minutes = ("0" + date.getMinutes()).slice(-2);
+  var seconds = ("0" + date.getSeconds()).slice(-2);
+  var formattedDate = year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
+  return formattedDate;
+}
 
 function Home() {
   const [path, setPath] = useState("");
@@ -132,6 +143,7 @@ function Home() {
   const [pageLimit, setPageLimit] = useState(10);
   const [data, setData] = useState([]);
   const [needMatchBrand, setNeedMatchBrand] = useState(false);
+  const [count, setCount] = useState(0);
 
   const [downloadLoading, setDownloadLoading] = useState(false);
   const downloadFile = () => {
@@ -139,23 +151,29 @@ function Home() {
     data.pipeline.push(
       {
         "$project": {
-          "asin": 1,
-          "brand": 1,
-          "brandempty": "$brandInfo.data.empty",
-          "availability": "$productvalues.availability",
-          "mainranking": "$productvalues.mainranking",
-          "othersellercount": "$productvalues.othersellercount",
-          "priceRaw": "$productvalues.price",
-          "rating": "$productvalues.rating",
-          "ratingscount": "$productvalues.ratingscount",
-          "reviewcount": "$productvalues.reviewcount",
-          "subranking": "$productvalues.subranking",
-          "title": 1,
-          "mode": "$deliveryinfo.mode",
-          "size": 1,
+          "ASIN": "$asin",
+          "品牌": "$brand",
+          "品牌为空": "$brandempty",
+          "库存量": "$productvalues.availability",
+          "主要排名": "$productvalues.mainranking",
+          "其他卖家数量": "$productvalues.othersellercount",
+          "原始价格": "$productvalues.priceRaw",
+          "评分": "$productvalues.rating",
+          "评分人数": "$productvalues.ratingscount",
+          "评论数量": "$productvalues.reviewcount",
+          "子排名": "$productvalues.subranking",
+          "运输方式": "$deliveryinfo.mode",
+          "尺寸": "$size",
           "_id": 0,
-          "lasttime": 1,
-          "price": 1,
+          "上次更新时间": "$lasttime",
+          "价格": "$price",
+          "链接": {
+            "$concat": [
+              "https://www.amazon.ca/dp/",
+              "$asin",
+              "?th=1&psc=1"
+            ]
+          }
         }
       }
     )
@@ -271,6 +289,24 @@ function Home() {
     setPage(page)
     let data = getmongodata();
 
+    // 拷贝一份data
+    let data2 = JSON.parse(JSON.stringify(data));
+    data2.pipeline.push(
+      { "$count": "result_count" }
+    )
+
+    // 查询总数
+    MongoAggregate(data2).then((res) => {
+      if (res.status === "ok") {
+        setCount(res.result[0].result_count);
+      } else {
+        show_toast('error', res.error)
+        setCount(0)
+      }
+    })
+
+
+
     if (selectedCities.length > 0) {
       let sort = {};
       selectedCities.forEach((item) => {
@@ -307,7 +343,8 @@ function Home() {
           "lasttime": 1,
           "price": 1,
           "images": 1,
-          "category_info": 1
+          "category_info": 1,
+          "availability":1
         }
       }
     )
@@ -318,6 +355,7 @@ function Home() {
         setData(res.result)
       } else {
         setData([])
+        show_toast('error', res.error)
       }
     })
   }
@@ -387,7 +425,7 @@ function Home() {
                 } label="排除已注册的品牌"/>
               </CInputGroup>
 
-              <CInputGroup className="mb-3 mt-1">
+              <CInputGroup className="mb-3 mt-1 ">
                 <CButton disabled={downloadLoading} onClick={() => {
                   downloadFile()
                 }}>
@@ -398,29 +436,36 @@ function Home() {
                 </CButton>
               </CInputGroup>
 
-
-              <CPagination align="end" className="cursor-pointer">
-                <CPaginationItem onClick={
-                  (e) => {
-                    query(1)
-                  }
-                }>首页</CPaginationItem>
-                <CPaginationItem disabled={page == 1} onClick={
-                  (e) => {
-                    query(page - 1)
-                  }
-                }>上页</CPaginationItem>
-                <CPaginationItem onClick={
-                  (e) => {
-                    query(page)
-                  }
-                }>{page}</CPaginationItem>
-                <CPaginationItem onClick={
-                  (e) => {
-                    query(page + 1)
-                  }
-                }>下一页</CPaginationItem>
-              </CPagination>
+              <hr className="mt-0"/>
+              <CRow className="align-items-center">
+                <CCol>
+                  总数: <span className="text-truncate">{count}</span>
+                </CCol>
+                <CCol>
+                  <CPagination align="end" className="cursor-pointer">
+                    <CPaginationItem onClick={
+                      (e) => {
+                        query(1)
+                      }
+                    }>首页</CPaginationItem>
+                    <CPaginationItem disabled={page == 1} onClick={
+                      (e) => {
+                        query(page - 1)
+                      }
+                    }>上页</CPaginationItem>
+                    <CPaginationItem onClick={
+                      (e) => {
+                        query(page)
+                      }
+                    }>{page}</CPaginationItem>
+                    <CPaginationItem onClick={
+                      (e) => {
+                        query(page + 1)
+                      }
+                    }>下一页</CPaginationItem>
+                  </CPagination>
+                </CCol>
+              </CRow>
               <CTable small align="middle">
                 <CTableHead>
                   <CTableRow>
@@ -453,7 +498,7 @@ function Home() {
                               <CTableDataCell scope="row">
                                 <CContainer>
                                   <CRow className="align-items-center">
-                                    <CCol xs={3}>
+                                    <CCol xs={3} className="text-center">
                                       {
                                         item.images && item.images.length > 0 ? (
                                           <Avatar className="p-overlay-badge" image={item.images[0]} size="xlarge">
@@ -466,6 +511,8 @@ function Home() {
                                         )
                                       }
                                       <div style={{"font-size": "12px"}}>{item.asin}</div>
+                                      {item.lasttime && <div style={{"font-size": "12px"}}>{formatTimestamp(item.lasttime)}</div>}
+
                                     </CCol>
                                     <CCol xs={9}>
                                       <CCol>
