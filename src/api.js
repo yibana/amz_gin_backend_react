@@ -81,3 +81,5 @@ export const ProductDetailStart = (proxys) => postJson('/task/ProductDetail', {c
 
 export const ResetDonePaths = () => postJson('/task/ProductDetail', {cmd: "ResetDonePaths"});
 export const ConvertToTreeSelect = () => get('/ConvertToTreeSelect', "");
+
+export const APIHost = host;
