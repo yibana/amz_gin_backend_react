@@ -30,6 +30,7 @@ import {MultiSelect} from 'primereact/multiselect';
 import {Toast} from "primereact/toast";
 import {Paginator} from 'primereact/paginator';
 import {Calendar} from 'primereact/calendar';
+import {debounce} from "lodash";
 
 // 从浏览器的localStorage中获取数据
 function loadConfig(key,defaultData) {
@@ -422,10 +423,11 @@ function Home() {
   const onPageChange = (event) => {
     setPageLimit(event.rows);
     setPage(event.page+1)
+    setFirst(event.first);
   };
-  const query = () => {
+
+  let query = () => {
     setLoading(true);
-    setFirst(pageLimit * (page - 1));
     let data = getmongodata();
 
     if (page == 1) {
@@ -501,7 +503,6 @@ function Home() {
     })
   }
 
-
   return (
     <>
       <Toast ref={toast}/>
@@ -519,7 +520,10 @@ function Home() {
                       <div className="icon-hover">
                         <CIcon
                           className="text-success"
-                          onClick={(e) => setPage(1)}
+                          onClick={(e) => {
+                            setPage(1)
+                            query()
+                          }}
                           icon={cilMediaPlay}/>
                       </div>
                     </CCol>
