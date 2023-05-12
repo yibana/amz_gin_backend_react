@@ -180,6 +180,7 @@ function Home() {
           "主要排名": "$productvalues.mainranking",
           "其他卖家数量": "$productvalues.othersellercount",
           "原始价格": "$productvalues.priceRaw",
+          "可能不允许跟卖": "$sellernamecontainsbrand",
           "评分": "$productvalues.rating",
           "评分人数": "$productvalues.ratingscount",
           "评论数量": "$productvalues.reviewcount",
@@ -335,12 +336,12 @@ function Home() {
       // 匹配sellerNameContainsBrand为空或者为false的
       firstmatch.$match.$or = [
         {
-          "sellerNameContainsBrand": {
+          "sellernamecontainsbrand": {
             "$exists": false
           }
         },
         {
-          "sellerNameContainsBrand": false
+          "sellernamecontainsbrand": false
 
         }
       ]
