@@ -28,10 +28,10 @@ import {Avatar} from 'primereact/avatar';
 import {Badge} from "primereact/badge";
 import {MultiSelect} from 'primereact/multiselect';
 import {Toast} from "primereact/toast";
-import { Paginator } from 'primereact/paginator';
+import {Paginator} from 'primereact/paginator';
 import {Calendar} from 'primereact/calendar';
 
-import { Image } from 'primereact/image';
+import {Image} from 'primereact/image';
 
 
 function MyTreeSelect({onNodeSelect}) {
@@ -266,7 +266,7 @@ function Home() {
               "$gte": r3,
               "$lte": r4
             },
-            "productvalues.othersellercount":{
+            "productvalues.othersellercount": {
               "$gte": othersellercount,
             }
           }
@@ -369,7 +369,7 @@ function Home() {
 
   const onPageChange = (event) => {
     setPageLimit(event.rows);
-    query(event.page+1);
+    query(event.page + 1);
   };
   const query = (page) => {
     setLoading(true);
@@ -377,21 +377,23 @@ function Home() {
     setFirst(pageLimit * (page - 1));
     let data = getmongodata();
 
-    // 拷贝一份data
-    let data2 = JSON.parse(JSON.stringify(data));
-    data2.pipeline.push(
-      {"$count": "result_count"}
-    )
+    if (page == 1) {
+      // 拷贝一份data
+      let data2 = JSON.parse(JSON.stringify(data));
+      data2.pipeline.push(
+        {"$count": "result_count"}
+      )
 
-    // 查询总数
-    MongoAggregate(data2).then((res) => {
-      if (res.status === "ok") {
-        setCount(res.result[0].result_count);
-      } else {
-        show_toast('error', res.error)
-        setCount(0)
-      }
-    })
+      // 查询总数
+      MongoAggregate(data2).then((res) => {
+        if (res.status === "ok") {
+          setCount(res.result[0].result_count);
+        } else {
+          show_toast('error', res.error)
+          setCount(0)
+        }
+      })
+    }
 
 
     if (selectedCities.length > 0) {
@@ -486,21 +488,21 @@ function Home() {
 
               <CInputGroup className="mb-2 mt-1">
                 <CInputGroupText className="me-1">主排名范围:</CInputGroupText>
-                <InputNumber  value={r1} onValueChange={(e) => setR1(e.value)}/>
+                <InputNumber value={r1} onValueChange={(e) => setR1(e.value)}/>
                 <CInputGroupText className="me-1">-</CInputGroupText>
                 <InputNumber value={r2} onValueChange={(e) => setR2(e.value)}/>
               </CInputGroup>
 
               <CInputGroup className="mb-2 mt-1">
                 <CInputGroupText className="me-1">子排名范围:</CInputGroupText>
-                <InputNumber  value={r3} onValueChange={(e) => setR3(e.value)}/>
+                <InputNumber value={r3} onValueChange={(e) => setR3(e.value)}/>
                 <CInputGroupText className="me-1">-</CInputGroupText>
                 <InputNumber value={r4} onValueChange={(e) => setR4(e.value)}/>
               </CInputGroup>
 
               <CInputGroup className="mb-2 mt-1">
                 <CInputGroupText className="me-1">其他卖家数≥:</CInputGroupText>
-                <InputNumber  value={othersellercount} onValueChange={(e) => setOthersellercount(e.value)}/>
+                <InputNumber value={othersellercount} onValueChange={(e) => setOthersellercount(e.value)}/>
               </CInputGroup>
 
               <CInputGroup className="mb-2 mt-1">
@@ -548,9 +550,10 @@ function Home() {
 
               <CRow className="align-items-center">
                 <CCol>
-                  <CButton color="warning" className="position-relative me-2"  disabled={downloadLoading} onClick={() => {
-                    downloadFile()
-                  }}>
+                  <CButton color="warning" className="position-relative me-2" disabled={downloadLoading}
+                           onClick={() => {
+                             downloadFile()
+                           }}>
                     {
                       downloadLoading && <CSpinner component="span" size="sm" aria-hidden="true"/>
                     }
@@ -561,7 +564,8 @@ function Home() {
                   </CButton>
                 </CCol>
                 <CCol>
-                  <Paginator first={first} rows={pageLimit} totalRecords={count} rowsPerPageOptions={[10, 20, 30,50,100]} onPageChange={onPageChange} />
+                  <Paginator first={first} rows={pageLimit} totalRecords={count}
+                             rowsPerPageOptions={[10, 20, 30, 50, 100]} onPageChange={onPageChange}/>
                 </CCol>
               </CRow>
 
@@ -600,7 +604,8 @@ function Home() {
                                     <CCol xs={3} className="text-center">
                                       {
                                         item.images && item.images.length > 0 ? (
-                                          <Avatar className="p-overlay-badge" image={item.images[0]} size="xlarge" preview >
+                                          <Avatar className="p-overlay-badge" image={item.images[0]} size="xlarge"
+                                                  preview>
                                             <Badge ize="normal" value={item.mode} severity="danger"/>
                                           </Avatar>
 
