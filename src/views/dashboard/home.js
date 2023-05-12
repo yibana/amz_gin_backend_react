@@ -28,8 +28,10 @@ import {Avatar} from 'primereact/avatar';
 import {Badge} from "primereact/badge";
 import {MultiSelect} from 'primereact/multiselect';
 import {Toast} from "primereact/toast";
-
+import { Paginator } from 'primereact/paginator';
 import {Calendar} from 'primereact/calendar';
+
+import { Image } from 'primereact/image';
 
 
 function MyTreeSelect({onNodeSelect}) {
@@ -151,12 +153,14 @@ function Home() {
   };
   const [modelValue, setmodelValue] = useState([]);
   const [pageLimit, setPageLimit] = useState(10);
+  const [first, setFirst] = useState(0);
   const [data, setData] = useState([]);
   const [needMatchBrand, setNeedMatchBrand] = useState(false);
   const [needsellerNameContainsBrand, setNeedsellerNameContainsBrand] = useState(false);
   const [count, setCount] = useState(0);
   const [datetime24hStart, setDatetime24hStart] = useState(null);
   const [datetime24hEnd, setDatetime24hEnd] = useState(null);
+  const [othersellercount, setOthersellercount] = useState(0);
 
   //打印datetime24hStart，当datetime24hStart改变时，打印出来
   useEffect(() => {
@@ -261,6 +265,9 @@ function Home() {
             "productvalues.subranking": {
               "$gte": r3,
               "$lte": r4
+            },
+            "productvalues.othersellercount":{
+              "$gte": othersellercount,
             }
           }
         },
@@ -360,9 +367,14 @@ function Home() {
     return data;
   }
 
+  const onPageChange = (event) => {
+    setPageLimit(event.rows);
+    query(event.page+1);
+  };
   const query = (page) => {
     setLoading(true);
     setPage(page)
+    setFirst(pageLimit * (page - 1));
     let data = getmongodata();
 
     // 拷贝一份data
@@ -463,7 +475,7 @@ function Home() {
             </CCardHeader>
             <CCardBody>
               <MyTreeSelect onNodeSelect={handleSelect}></MyTreeSelect>
-              <CInputGroup className="mb-3 mt-1">
+              <CInputGroup className="mb-2 mt-1">
                 <CInputGroupText className="me-1">价格范围:</CInputGroupText>
                 <InputNumber inputId="currency-us" value={p1} onValueChange={(e) => setP1(e.value)} mode="currency"
                              currency="USD" locale="en-US"/>
@@ -472,27 +484,32 @@ function Home() {
                              currency="USD" locale="en-US"/>
               </CInputGroup>
 
-              <CInputGroup className="mb-3 mt-1">
+              <CInputGroup className="mb-2 mt-1">
                 <CInputGroupText className="me-1">主排名范围:</CInputGroupText>
                 <InputNumber  value={r1} onValueChange={(e) => setR1(e.value)}/>
                 <CInputGroupText className="me-1">-</CInputGroupText>
                 <InputNumber value={r2} onValueChange={(e) => setR2(e.value)}/>
               </CInputGroup>
 
-              <CInputGroup className="mb-3 mt-1">
+              <CInputGroup className="mb-2 mt-1">
                 <CInputGroupText className="me-1">子排名范围:</CInputGroupText>
                 <InputNumber  value={r3} onValueChange={(e) => setR3(e.value)}/>
                 <CInputGroupText className="me-1">-</CInputGroupText>
                 <InputNumber value={r4} onValueChange={(e) => setR4(e.value)}/>
               </CInputGroup>
 
-              <CInputGroup className="mb-3 mt-1">
+              <CInputGroup className="mb-2 mt-1">
+                <CInputGroupText className="me-1">其他卖家数≥:</CInputGroupText>
+                <InputNumber  value={othersellercount} onValueChange={(e) => setOthersellercount(e.value)}/>
+              </CInputGroup>
+
+              <CInputGroup className="mb-2 mt-1">
                 <CInputGroupText className="me-1">配送方式:</CInputGroupText>
                 <SelectButton value={modelValue} onChange={(e) => setmodelValue(e.value)} options={model}
                               optionLabel="name" multiple/>
               </CInputGroup>
 
-              <CInputGroup className="mb-3 mt-1">
+              <CInputGroup className="mb-2 mt-1">
                 <CInputGroupText className="me-1">排序:</CInputGroupText>
                 <MultiSelect value={selectedCities} onChange={(e) => onCityChange(e)} options={cities}
                              optionLabel="name" display="chip"
@@ -500,7 +517,7 @@ function Home() {
                              style={{width: "900px"}}/>
               </CInputGroup>
 
-              <CInputGroup className="mb-3 mt-1">
+              <CInputGroup className="mb-2 mt-1">
                 <CInputGroupText className="me-1">开始:</CInputGroupText>
                 <Calendar value={datetime24hStart} onChange={(e) => setDatetime24hStart(e.value)} showTime
                           hourFormat="24"/>
@@ -513,13 +530,8 @@ function Home() {
                 }>清空</CButton>
               </CInputGroup>
 
-              <CInputGroup className="mb-3 mt-1">
-                <CInputGroupText className="me-1" id="basic-addon1">每页显示:</CInputGroupText>
-                <SelectButton value={pageLimit} onChange={(e) => setPageLimit(e.value)} options={pageLimitOptions}
-                              optionLabel="label"/>
-              </CInputGroup>
 
-              <CInputGroup className="mb-3 mt-1">
+              <CInputGroup className="mb-2 mt-1">
                 <CFormSwitch size="xl" checked={needMatchBrand} onChange={
                   (e) => {
                     setNeedMatchBrand(e.target.checked)
@@ -532,48 +544,27 @@ function Home() {
                   }
                 } label="排除可能不允许跟卖"/>
               </CInputGroup>
-
-              <CInputGroup className="mb-3 mt-1 ">
-                <CButton disabled={downloadLoading} onClick={() => {
-                  downloadFile()
-                }}>
-                  {
-                    downloadLoading && <CSpinner component="span" size="sm" aria-hidden="true"/>
-                  }
-                  下载数据
-                </CButton>
-              </CInputGroup>
-
               <hr className="mt-0"/>
+
               <CRow className="align-items-center">
                 <CCol>
-                  总数: <span className="text-truncate">{count}</span>
+                  <CButton color="warning" className="position-relative me-2"  disabled={downloadLoading} onClick={() => {
+                    downloadFile()
+                  }}>
+                    {
+                      downloadLoading && <CSpinner component="span" size="sm" aria-hidden="true"/>
+                    }
+                    下载数据
+                    <CBadge color="danger" position="top-end" shape="rounded-pill">
+                      {count}
+                    </CBadge>
+                  </CButton>
                 </CCol>
                 <CCol>
-                  <CPagination align="end" className="cursor-pointer">
-                    <CPaginationItem onClick={
-                      (e) => {
-                        query(1)
-                      }
-                    }>首页</CPaginationItem>
-                    <CPaginationItem disabled={page == 1} onClick={
-                      (e) => {
-                        query(page - 1)
-                      }
-                    }>上页</CPaginationItem>
-                    <CPaginationItem onClick={
-                      (e) => {
-                        query(page)
-                      }
-                    }>{page}</CPaginationItem>
-                    <CPaginationItem onClick={
-                      (e) => {
-                        query(page + 1)
-                      }
-                    }>下一页</CPaginationItem>
-                  </CPagination>
+                  <Paginator first={first} rows={pageLimit} totalRecords={count} rowsPerPageOptions={[10, 20, 30,50,100]} onPageChange={onPageChange} />
                 </CCol>
               </CRow>
+
               <CTable small align="middle">
                 <CTableHead>
                   <CTableRow>
@@ -609,9 +600,10 @@ function Home() {
                                     <CCol xs={3} className="text-center">
                                       {
                                         item.images && item.images.length > 0 ? (
-                                          <Avatar className="p-overlay-badge" image={item.images[0]} size="xlarge">
+                                          <Avatar className="p-overlay-badge" image={item.images[0]} size="xlarge" preview >
                                             <Badge ize="normal" value={item.mode} severity="danger"/>
                                           </Avatar>
+
                                         ) : (
                                           <Avatar className="p-overlay-badge" size="xlarge">
                                             <Badge size="normal" value={item.mode} severity="danger"/>
