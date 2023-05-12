@@ -31,8 +31,19 @@ import {Toast} from "primereact/toast";
 import {Paginator} from 'primereact/paginator';
 import {Calendar} from 'primereact/calendar';
 
-import {Image} from 'primereact/image';
+// 从浏览器的localStorage中获取数据
+function loadConfig(key,defaultData) {
+  let data = localStorage.getItem(key);
+  if (data) {
+    return JSON.parse(data);
+  }
+  return defaultData;
+}
 
+// 保存数据到浏览器的localStorage中
+function saveConfig(key,data) {
+  localStorage.setItem(key,JSON.stringify(data))
+}
 
 function MyTreeSelect({onNodeSelect}) {
   const [nodes, setNodes] = useState(null);
@@ -103,19 +114,62 @@ function formatTimestamp(timestamp) {
 }
 
 function Home() {
-  const [path, setPath] = useState("");
-  const [p1, setP1] = useState(0);
-  const [p2, setP2] = useState(1000);
-  const [r1, setR1] = useState(0);
-  const [r2, setR2] = useState(100000);
+  let config = loadConfig("config",{
+    default_p1:1,
+    default_p2:1000,
+    default_r1:0,
+    default_r2:100000,
+    default_r3:0,
+    default_r4:100,
+    default_pagelimit:10,
+    default_needMatchBrand:false,
+    default_needsellerNameContainsBrand:false,
+    default_othersellercount:0,
+    default_modelValue:[],
+    default_selectedCities:[]
+  })
 
-  const [r3, setR3] = useState(0);
-  const [r4, setR4] = useState(100);
+
+  const [path, setPath] = useState("");
+  const [p1, setP1] = useState(config.default_p1);
+  const [p2, setP2] = useState(config.default_p2);
+  const [r1, setR1] = useState(config.default_r1);
+  const [r2, setR2] = useState(config.default_r2);
+
+  const [r3, setR3] = useState(config.default_r3);
+  const [r4, setR4] = useState(config.default_r4);
+  const [needMatchBrand, setNeedMatchBrand] = useState(config.default_needMatchBrand);
+  const [needsellerNameContainsBrand, setNeedsellerNameContainsBrand] = useState(config.default_needsellerNameContainsBrand);
+
+  const [othersellercount, setOthersellercount] = useState(config.default_othersellercount);
+  const [modelValue, setmodelValue] = useState(config.default_modelValue);
+  const [pageLimit, setPageLimit] = useState(config.default_pagelimit);
+  const [selectedCities, setSelectedCities] = useState(config.default_selectedCities);
+
+  useEffect(()=>{
+    saveConfig("config",{
+      default_p1:p1,
+      default_p2:p2,
+      default_r1:r1,
+      default_r2:r2,
+      default_r3:r3,
+      default_r4:r4,
+      default_pagelimit:pageLimit,
+      default_needMatchBrand:needMatchBrand,
+      default_needsellerNameContainsBrand:needsellerNameContainsBrand,
+      default_othersellercount:othersellercount,
+      default_modelValue:modelValue,
+      default_selectedCities:selectedCities
+    })
+  },[path,p1,p2,r1,r2,r3,r4,needMatchBrand,needsellerNameContainsBrand,othersellercount,modelValue,pageLimit,selectedCities])
 
 
   const [loading, setLoading] = React.useState(false);
-  const [selectedCities, setSelectedCities] = useState([]);
   const [page, setPage] = useState(1);
+  const [count, setCount] = useState(0);
+  const [datetime24hStart, setDatetime24hStart] = useState(null);
+  const [datetime24hEnd, setDatetime24hEnd] = useState(null);
+
   const handleSelect = selectedItems => {
     setPath(selectedItems.node.data);
   };
@@ -151,16 +205,10 @@ function Home() {
   const show_toast = (severity, msg) => {
     toast.current.show({severity: severity, summary: severity, detail: msg});
   };
-  const [modelValue, setmodelValue] = useState([]);
-  const [pageLimit, setPageLimit] = useState(10);
+
   const [first, setFirst] = useState(0);
   const [data, setData] = useState([]);
-  const [needMatchBrand, setNeedMatchBrand] = useState(false);
-  const [needsellerNameContainsBrand, setNeedsellerNameContainsBrand] = useState(false);
-  const [count, setCount] = useState(0);
-  const [datetime24hStart, setDatetime24hStart] = useState(null);
-  const [datetime24hEnd, setDatetime24hEnd] = useState(null);
-  const [othersellercount, setOthersellercount] = useState(0);
+
 
   //打印datetime24hStart，当datetime24hStart改变时，打印出来
   useEffect(() => {
@@ -169,6 +217,10 @@ function Home() {
 
     }
   }, [datetime24hStart]);
+
+  useEffect(() => {
+    query();
+  },[page,pageLimit])
 
 
   const [downloadLoading, setDownloadLoading] = useState(false);
@@ -369,11 +421,10 @@ function Home() {
 
   const onPageChange = (event) => {
     setPageLimit(event.rows);
-    query(event.page + 1);
+    setPage(event.page+1)
   };
-  const query = (page) => {
+  const query = () => {
     setLoading(true);
-    setPage(page)
     setFirst(pageLimit * (page - 1));
     let data = getmongodata();
 
@@ -468,7 +519,7 @@ function Home() {
                       <div className="icon-hover">
                         <CIcon
                           className="text-success"
-                          onClick={(e) => query(1)}
+                          onClick={(e) => setPage(1)}
                           icon={cilMediaPlay}/>
                       </div>
                     </CCol>
