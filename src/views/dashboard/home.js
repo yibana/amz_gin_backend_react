@@ -29,6 +29,8 @@ import {Badge} from "primereact/badge";
 import {MultiSelect} from 'primereact/multiselect';
 import {Toast} from "primereact/toast";
 
+import {Calendar} from 'primereact/calendar';
+
 
 function MyTreeSelect({onNodeSelect}) {
   const [nodes, setNodes] = useState(null);
@@ -85,6 +87,7 @@ function base64ToBlob(base64Data, contentType) {
   const blob = new Blob(byteArrays, {type: contentType});
   return blob;
 }
+
 function formatTimestamp(timestamp) {
   var date = new Date(timestamp * 1000);
   var year = date.getFullYear();
@@ -101,6 +104,13 @@ function Home() {
   const [path, setPath] = useState("");
   const [p1, setP1] = useState(0);
   const [p2, setP2] = useState(1000);
+  const [r1, setR1] = useState(0);
+  const [r2, setR2] = useState(100000);
+
+  const [r3, setR3] = useState(0);
+  const [r4, setR4] = useState(100);
+
+
   const [loading, setLoading] = React.useState(false);
   const [selectedCities, setSelectedCities] = useState([]);
   const [page, setPage] = useState(1);
@@ -143,7 +153,19 @@ function Home() {
   const [pageLimit, setPageLimit] = useState(10);
   const [data, setData] = useState([]);
   const [needMatchBrand, setNeedMatchBrand] = useState(false);
+  const [needsellerNameContainsBrand, setNeedsellerNameContainsBrand] = useState(false);
   const [count, setCount] = useState(0);
+  const [datetime24hStart, setDatetime24hStart] = useState(null);
+  const [datetime24hEnd, setDatetime24hEnd] = useState(null);
+
+  //打印datetime24hStart，当datetime24hStart改变时，打印出来
+  useEffect(() => {
+    if (datetime24hStart) {
+      console.log(datetime24hStart.getTime());
+
+    }
+  }, [datetime24hStart]);
+
 
   const [downloadLoading, setDownloadLoading] = useState(false);
   const downloadFile = () => {
@@ -163,6 +185,7 @@ function Home() {
           "评论数量": "$productvalues.reviewcount",
           "子排名": "$productvalues.subranking",
           "运输方式": "$deliveryinfo.mode",
+          "卖家名称": "$deliveryinfo.info.sellerName",
           "尺寸": "$size",
           "_id": 0,
           "上次更新时间": "$lasttime",
@@ -219,22 +242,6 @@ function Home() {
 
   const getmongodata = () => {
     let timestamp = Date.parse(new Date());
-    let matchBrand = {
-      "$match": {
-        "$or": [
-          {
-            "brandInfo.data.numFound": {
-              "$exists": false
-            }
-          },
-          {
-            "brandInfo.data.numFound": {
-              "$eq": 0
-            }
-          }
-        ]
-      }
-    };
     let data = {
       "collection": "ProductDetail",
       "time": timestamp,
@@ -245,6 +252,14 @@ function Home() {
             "productvalues.price": {
               "$gt": p1,
               "$lte": p2
+            },
+            "productvalues.mainranking": {
+              "$gte": r1,
+              "$lte": r2
+            },
+            "productvalues.subranking": {
+              "$gte": r3,
+              "$lte": r4
             }
           }
         },
@@ -277,9 +292,69 @@ function Home() {
       }
     }
 
-    if (needMatchBrand) {
-      data.pipeline.push(matchBrand)
+    let lastmatch = {
+      "$match": {}
     }
+
+    let firstmatch = {
+      "$match": {}
+    }
+
+
+    if (datetime24hStart) {
+      if (!lastmatch.$match.lasttime) {
+        lastmatch.$match.lasttime = {}
+      }
+
+      lastmatch.$match.lasttime.$gte = Math.floor(datetime24hStart.getTime() / 1000)
+    }
+
+    if (datetime24hEnd) {
+      if (!lastmatch.$match.lasttime) {
+        lastmatch.$match.lasttime = {}
+      }
+      lastmatch.$match.lasttime.$lt = Math.floor(datetime24hEnd.getTime() / 1000)
+    }
+
+    if (needMatchBrand) {
+      lastmatch.$match.$or = [
+        {
+          "brandInfo.data.numFound": {
+            "$exists": false
+          }
+        },
+        {
+          "brandInfo.data.numFound": {
+            "$eq": 0
+          }
+        }
+      ]
+    }
+
+    if (needsellerNameContainsBrand) {
+      // 匹配sellerNameContainsBrand为空或者为false的
+      firstmatch.$match.$or = [
+        {
+          "sellerNameContainsBrand": {
+            "$exists": false
+          }
+        },
+        {
+          "sellerNameContainsBrand": false
+
+        }
+      ]
+    }
+
+    if (Object.keys(firstmatch.$match).length > 0) {
+      data.pipeline.push(firstmatch)
+    }
+
+    // 如果lastmatch.$match不为空，就加入到pipeline里面
+    if (Object.keys(lastmatch.$match).length > 0) {
+      data.pipeline.push(lastmatch)
+    }
+
 
     return data;
   }
@@ -292,7 +367,7 @@ function Home() {
     // 拷贝一份data
     let data2 = JSON.parse(JSON.stringify(data));
     data2.pipeline.push(
-      { "$count": "result_count" }
+      {"$count": "result_count"}
     )
 
     // 查询总数
@@ -304,7 +379,6 @@ function Home() {
         setCount(0)
       }
     })
-
 
 
     if (selectedCities.length > 0) {
@@ -338,13 +412,14 @@ function Home() {
           "productvalues": 1,
           "title": 1,
           "mode": "$deliveryinfo.mode",
+          "sellerName": "$deliveryinfo.info.sellerName",
           "size": 1,
           "_id": 0,
           "lasttime": 1,
           "price": 1,
           "images": 1,
           "category_info": 1,
-          "availability":1
+          "availability": 1
         }
       }
     )
@@ -388,7 +463,7 @@ function Home() {
             <CCardBody>
               <MyTreeSelect onNodeSelect={handleSelect}></MyTreeSelect>
               <CInputGroup className="mb-3 mt-1">
-                <CInputGroupText className="me-1" id="basic-addon1">价格范围:</CInputGroupText>
+                <CInputGroupText className="me-1">价格范围:</CInputGroupText>
                 <InputNumber inputId="currency-us" value={p1} onValueChange={(e) => setP1(e.value)} mode="currency"
                              currency="USD" locale="en-US"/>
                 <CInputGroupText className="me-1">-</CInputGroupText>
@@ -397,17 +472,44 @@ function Home() {
               </CInputGroup>
 
               <CInputGroup className="mb-3 mt-1">
-                <CInputGroupText className="me-1" id="basic-addon1">配送方式:</CInputGroupText>
+                <CInputGroupText className="me-1">主排名范围:</CInputGroupText>
+                <InputNumber  value={r1} onValueChange={(e) => setR1(e.value)}/>
+                <CInputGroupText className="me-1">-</CInputGroupText>
+                <InputNumber value={r2} onValueChange={(e) => setR2(e.value)}/>
+              </CInputGroup>
+
+              <CInputGroup className="mb-3 mt-1">
+                <CInputGroupText className="me-1">子排名范围:</CInputGroupText>
+                <InputNumber  value={r3} onValueChange={(e) => setR3(e.value)}/>
+                <CInputGroupText className="me-1">-</CInputGroupText>
+                <InputNumber value={r4} onValueChange={(e) => setR4(e.value)}/>
+              </CInputGroup>
+
+              <CInputGroup className="mb-3 mt-1">
+                <CInputGroupText className="me-1">配送方式:</CInputGroupText>
                 <SelectButton value={modelValue} onChange={(e) => setmodelValue(e.value)} options={model}
                               optionLabel="name" multiple/>
               </CInputGroup>
 
               <CInputGroup className="mb-3 mt-1">
-                <CInputGroupText className="me-1" id="basic-addon1">排序:</CInputGroupText>
+                <CInputGroupText className="me-1">排序:</CInputGroupText>
                 <MultiSelect value={selectedCities} onChange={(e) => onCityChange(e)} options={cities}
                              optionLabel="name" display="chip"
                              placeholder="按优先级选" className="w-full md:w-20rem"
                              style={{width: "900px"}}/>
+              </CInputGroup>
+
+              <CInputGroup className="mb-3 mt-1">
+                <CInputGroupText className="me-1">开始:</CInputGroupText>
+                <Calendar value={datetime24hStart} onChange={(e) => setDatetime24hStart(e.value)} showTime
+                          hourFormat="24"/>
+                <CInputGroupText className="me-1">结束:</CInputGroupText>
+                <Calendar value={datetime24hEnd} onChange={(e) => setDatetime24hEnd(e.value)} showTime hourFormat="24"/>
+                <CButton onClick={() => {
+                  setDatetime24hStart(null)
+                  setDatetime24hEnd(null)
+                }
+                }>清空</CButton>
               </CInputGroup>
 
               <CInputGroup className="mb-3 mt-1">
@@ -420,9 +522,14 @@ function Home() {
                 <CFormSwitch size="xl" checked={needMatchBrand} onChange={
                   (e) => {
                     setNeedMatchBrand(e.target.checked)
-                    console.log(e.target.checked)
                   }
                 } label="排除已注册的品牌"/>
+
+                <CFormSwitch size="xl" className="ms-2" checked={needsellerNameContainsBrand} onChange={
+                  (e) => {
+                    setNeedsellerNameContainsBrand(e.target.checked)
+                  }
+                } label="排除可能不允许跟卖"/>
               </CInputGroup>
 
               <CInputGroup className="mb-3 mt-1 ">
@@ -511,7 +618,8 @@ function Home() {
                                         )
                                       }
                                       <div style={{"font-size": "12px"}}>{item.asin}</div>
-                                      {item.lasttime && <div style={{"font-size": "12px"}}>{formatTimestamp(item.lasttime)}</div>}
+                                      {item.lasttime &&
+                                        <div style={{"font-size": "12px"}}>{formatTimestamp(item.lasttime)}</div>}
 
                                     </CCol>
                                     <CCol xs={9}>
@@ -572,12 +680,17 @@ function Home() {
                                 <CRow>
                                   <CCol xs={12}>
                                   <span className="pt-1 pe-2 p-overlay-badge">
-                                    {item.brand}
+                                    <code>
+                                      {item.brand}
+                                    </code>
                                     {item.brandInfo && item.brandInfo.length > 0 && (
                                       <Badge severity={item.brandInfo[0].data.empty ? 'success' : "danger"}
                                              value={item.brandInfo[0].data.numFound}></Badge>
                                     )}
                                   </span>
+                                  </CCol>
+                                  <CCol xs={12}>
+                                    <small className="text-success">{item.sellerName}</small>
                                   </CCol>
 
                                 </CRow>
