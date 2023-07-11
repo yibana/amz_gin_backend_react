@@ -119,7 +119,7 @@ function Home() {
     default_p1:1,
     default_p2:1000,
     default_r1:0,
-    default_r2:100000,
+    default_r2:1000000,
     default_r3:0,
     default_r4:100,
     default_pagelimit:10,
@@ -247,6 +247,7 @@ function Home() {
           "尺寸": "$size",
           "_id": 0,
           "上次更新时间": "$lasttime",
+          "首次上架时间": "$listingdate",
           "价格": "$price",
           "链接": {
             "$concat": [
@@ -427,9 +428,12 @@ function Home() {
   };
 
   let query = () => {
+    if(path === ''){
+      show_toast('error', '请输入类目')
+      return
+    }
     setLoading(true);
     let data = getmongodata();
-
     if (page == 1) {
       // 拷贝一份data
       let data2 = JSON.parse(JSON.stringify(data));
@@ -487,7 +491,8 @@ function Home() {
           "price": 1,
           "images": 1,
           "category_info": 1,
-          "availability": 1
+          "availability": 1,
+          "listingdate": 1,
         }
       }
     )
