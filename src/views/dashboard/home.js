@@ -30,6 +30,9 @@ import {MultiSelect} from 'primereact/multiselect';
 import {Toast} from "primereact/toast";
 import {Paginator} from 'primereact/paginator';
 import {Calendar} from 'primereact/calendar';
+
+import { Image } from 'primereact/image';
+
 import {debounce} from "lodash";
 
 // 从浏览器的localStorage中获取数据
@@ -637,8 +640,8 @@ function Home() {
                                       style={{width: "610px"}}>简要</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className="text-center">品牌</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className="text-center">价格</CTableHeaderCell>
-                    <CTableHeaderCell scope="col"
-                                      style={{width: "350px"}}>类目排行</CTableHeaderCell>
+                    {/*<CTableHeaderCell scope="col"*/}
+                    {/*                  style={{width: "350px"}}>类目排行</CTableHeaderCell>*/}
                   </CTableRow>
                 </CTableHead>
                 <CTableBody>
@@ -661,13 +664,17 @@ function Home() {
                               <CTableDataCell scope="row">
                                 <CContainer>
                                   <CRow className="align-items-center">
-                                    <CCol xs={3} className="text-center">
+                                    <CCol xs={6} className="text-center">
                                       {
                                         item.images && item.images.length > 0 ? (
-                                          <Avatar className="p-overlay-badge" image={item.images[0]} size="xlarge"
-                                                  preview>
+                                          <div  className="p-overlay-badge">
+                                            <Image src={item.images[0]} alt="Image" width="250"
+                                                   preview>
+
+                                            </Image>
                                             <Badge ize="normal" value={item.mode} severity="danger"/>
-                                          </Avatar>
+                                          </div>
+
 
                                         ) : (
                                           <Avatar className="p-overlay-badge" size="xlarge">
@@ -680,7 +687,7 @@ function Home() {
                                         <div style={{"font-size": "12px"}}>{formatTimestamp(item.lasttime)}</div>}
 
                                     </CCol>
-                                    <CCol xs={9}>
+                                    <CCol xs={6}>
                                       <CCol>
                                         <CTooltip content={item.title}>
                                           <div className="text-truncate" style={{width: "450px"}}>
@@ -707,10 +714,10 @@ function Home() {
                                         <span className="ms-3">评论数:</span>
                                         <strong>{item.productvalues.reviewcount}</strong>
                                       </CCol>
-                                      <CCol className="text-secondary small">
-                                        <span>库存:</span>
-                                        <strong>{item.availability}</strong>
-                                      </CCol>
+                                      {/*<CCol className="text-secondary small">*/}
+                                      {/*  <span>库存:</span>*/}
+                                      {/*  <strong>{item.availability}</strong>*/}
+                                      {/*</CCol>*/}
                                       {
                                         item.size && item.size.length > 0 && (
                                           <CCol className="text-info small">
@@ -756,20 +763,20 @@ function Home() {
                               <CTableDataCell scope="row" className="text-center">
                                 <span className="small text-danger">{item.price}</span>
                               </CTableDataCell>
-                              <CTableDataCell scope="row">
-                                {
-                                  item.category_info.map((item, index) => {
-                                    return (
-                                      <CTooltip key={index} content={item.path}>
-                                        <div className="mb-1">
-                                          <span
-                                            className="small text-info">#{item.rank} {getLastSegment(item.path)}</span>
-                                        </div>
-                                      </CTooltip>
-                                    )
-                                  })
-                                }
-                              </CTableDataCell>
+                              {/*<CTableDataCell scope="row">*/}
+                              {/*  {*/}
+                              {/*    item.category_info.map((item, index) => {*/}
+                              {/*      return (*/}
+                              {/*        <CTooltip key={index} content={item.path}>*/}
+                              {/*          <div className="mb-1">*/}
+                              {/*            <span*/}
+                              {/*              className="small text-info">#{item.rank} {getLastSegment(item.path)}</span>*/}
+                              {/*          </div>*/}
+                              {/*        </CTooltip>*/}
+                              {/*      )*/}
+                              {/*    })*/}
+                              {/*  }*/}
+                              {/*</CTableDataCell>*/}
                             </CTableRow>
                           )
                         }
